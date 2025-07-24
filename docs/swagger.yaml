@@ -1,0 +1,123 @@
+basePath: /
+definitions:
+  dtos.BalanceResponseDto:
+    properties:
+      balance:
+        type: number
+    type: object
+  dtos.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  dtos.TransferRequestDto:
+    properties:
+      amount:
+        type: number
+      from:
+        type: string
+      to:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API for transferring money between users
+  title: Money Transfer API
+  version: "1.0"
+paths:
+  /balance/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get current balance for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BalanceResponseDto'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dtos.ErrorResponse'
+      summary: Get user balance
+      tags:
+      - users
+  /transfers:
+    post:
+      consumes:
+      - application/json
+      description: Create a new money transfer transaction
+      parameters:
+      - description: Transaction details
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.TransferRequestDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create new transaction
+      tags:
+      - transfers
+  /transfers/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get transactions by user ID
+      tags:
+      - transfers
+swagger: "2.0"
