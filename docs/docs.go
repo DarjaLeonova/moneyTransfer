@@ -85,7 +85,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.TransferRequestDto"
+                            "$ref": "#/definitions/dtos.TransactionRequestDto"
                         }
                     }
                 ],
@@ -93,18 +93,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
-                            }
+                            "$ref": "#/definitions/dtos.CreateTransactionResponseDto"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     }
                 }
@@ -138,16 +133,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object",
-                                "additionalProperties": true
+                                "$ref": "#/definitions/dtos.TransactionResponseDto"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dtos.ErrorResponse"
                         }
                     }
                 }
@@ -163,18 +156,35 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.CreateTransactionResponseDto": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.ErrorResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 },
+                "error": {
+                    "type": "string"
+                },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "dtos.TransferRequestDto": {
+        "dtos.TransactionRequestDto": {
             "type": "object",
             "properties": {
                 "amount": {
@@ -184,6 +194,40 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.TransactionResponseDto": {
+            "type": "object",
+            "properties": {
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Transaction"
+                    }
+                }
+            }
+        },
+        "model.Transaction": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "receiver_id": {
+                    "type": "string"
+                },
+                "sender_id": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

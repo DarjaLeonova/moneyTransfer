@@ -5,20 +5,53 @@ definitions:
       balance:
         type: number
     type: object
+  dtos.CreateTransactionResponseDto:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+    type: object
   dtos.ErrorResponse:
     properties:
       code:
         type: integer
+      error:
+        type: string
       message:
         type: string
     type: object
-  dtos.TransferRequestDto:
+  dtos.TransactionRequestDto:
     properties:
       amount:
         type: number
       from:
         type: string
       to:
+        type: string
+    type: object
+  dtos.TransactionResponseDto:
+    properties:
+      transactions:
+        items:
+          $ref: '#/definitions/model.Transaction'
+        type: array
+    type: object
+  model.Transaction:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      receiver_id:
+        type: string
+      sender_id:
+        type: string
+      status:
         type: string
     type: object
 host: localhost:8080
@@ -72,22 +105,18 @@ paths:
         name: transaction
         required: true
         schema:
-          $ref: '#/definitions/dtos.TransferRequestDto'
+          $ref: '#/definitions/dtos.TransactionRequestDto'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              additionalProperties: true
-              type: object
-            type: array
+            $ref: '#/definitions/dtos.CreateTransactionResponseDto'
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
       summary: Create new transaction
       tags:
       - transfers
@@ -109,14 +138,12 @@ paths:
           description: OK
           schema:
             items:
-              additionalProperties: true
-              type: object
+              $ref: '#/definitions/dtos.TransactionResponseDto'
             type: array
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dtos.ErrorResponse'
       summary: Get transactions by user ID
       tags:
       - transfers
