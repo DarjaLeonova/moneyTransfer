@@ -1,17 +1,17 @@
-package postgres
+package repository
 
 import (
 	"context"
 	"database/sql"
+	"moneyTransfer/internal/domain/contracts"
 	"moneyTransfer/internal/domain/model"
-	"moneyTransfer/internal/repository"
 )
 
 type UserRepo struct {
 	db *sql.DB
 }
 
-var _ repository.UserRepository = (*UserRepo)(nil)
+var _ contracts.UserRepository = (*UserRepo)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepo {
 	return &UserRepo{db}
