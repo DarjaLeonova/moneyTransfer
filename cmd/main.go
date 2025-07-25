@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/swaggo/http-swagger"
+	"context"
+	"errors"
 	"log"
+	"moneyTransfer/api"
 	"moneyTransfer/api/handler"
 	"moneyTransfer/internal/domain/contracts"
 	"moneyTransfer/internal/domain/service"
@@ -12,9 +12,11 @@ import (
 	"moneyTransfer/internal/repository"
 	"moneyTransfer/internal/repository/postgres"
 	"moneyTransfer/pkg/logger"
-	"moneyTransfer/pkg/metrics"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	_ "moneyTransfer/docs"
 )
@@ -24,7 +26,6 @@ import (
 // @description REST API for transferring money between users
 // @host localhost:8080
 // @BasePath /
-
 func main() {
 	logger.Init()
 	logger.Log.Info("Logger initialized")
@@ -39,7 +40,6 @@ func main() {
 
 	var transferRepo contracts.TransferRepository = repository.NewTransferRepository(db)
 	var userRepo contracts.UserRepository = repository.NewUserRepository(db)
-	queue.StartWorker(userRepo, transferRepo)
 
 	transferService := service.NewTransferService(transferRepo, userRepo)
 	userService := service.NewUserService(userRepo)
@@ -47,17 +47,37 @@ func main() {
 	transferController := handler.NewTransferController(transferService)
 	userController := handler.NewUserController(userService)
 
-	router := mux.NewRouter()
+	router := api.InitRouter(transferController, userController)
 
-	router.HandleFunc("/transfers/{userId}", transferController.GetTransactionsByUserID).Methods("GET")
-	router.HandleFunc("/transfers", transferController.CreateTransaction).Methods("POST")
-	router.HandleFunc("/balance/{userId}", userController.GetUserBalance).Methods("GET")
+	queue.StartWorker(userRepo, transferRepo)
 
-	router.Use(metrics.NewPrometheusMiddleware())
-	router.Handle("/metrics", promhttp.Handler())
+	/** Graceful shutdown
+	/- syscall.SIGTERM (kill -15, the default signal for docker stop)
+	- syscall.SIGINT (kill -2, Ex: ctrl+c for testing on local machine)
+	**/
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	httpServer := &http.Server{
+		Addr:    ":" + port,
+		Handler: router,
+	}
+	go func() {
+		logger.Log.Info("HTTP server started on :8080")
+		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Server failed: %v", err)
+		}
+	}()
 
-	log.Printf("Server listening on %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	<-sigChan // wait till we get a signal from the channel (CTRL + C, docker stop, etc.)
+	logger.Log.Info("Received shutdown signal, terminating...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Fatalf("Graceful shutdown failed: %v", err)
+	}
+
+	logger.Log.Info("Server shutdown gracefully")
 }
