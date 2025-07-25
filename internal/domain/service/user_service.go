@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"moneyTransfer/internal/domain/contracts"
 	"moneyTransfer/internal/domain/model"
-	"moneyTransfer/internal/repository"
 )
 
 type UserService interface {
@@ -12,10 +12,10 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepo repository.UserRepository
+	userRepo contracts.UserRepository
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
+func NewUserService(userRepo contracts.UserRepository) UserService {
 	return &userService{userRepo: userRepo}
 }
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"moneyTransfer/internal/domain/contracts"
 	"moneyTransfer/internal/domain/model"
-	"moneyTransfer/internal/repository"
 	"time"
 )
 
@@ -15,11 +15,11 @@ type TransferService interface {
 }
 
 type transferService struct {
-	transferRepo repository.TransferRepository
-	userRepo     repository.UserRepository
+	transferRepo contracts.TransferRepository
+	userRepo     contracts.UserRepository
 }
 
-func NewTransferService(transferRepo repository.TransferRepository, userRepo repository.UserRepository) TransferService {
+func NewTransferService(transferRepo contracts.TransferRepository, userRepo contracts.UserRepository) TransferService {
 	return &transferService{transferRepo: transferRepo, userRepo: userRepo}
 }
 
