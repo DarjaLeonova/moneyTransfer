@@ -47,7 +47,7 @@ func (t *transferService) CreateTransfer(ctx context.Context, from, to string, a
 		SenderId:   uuid.MustParse(from),
 		ReceiverId: uuid.MustParse(to),
 		Amount:     amount,
-		Status:     "PENDING",
+		Status:     model.StatusPending,
 		CreatedAt:  time.Now(),
 	}
 
