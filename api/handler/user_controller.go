@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"moneyTransfer/internal/domain/dtos"
 	"moneyTransfer/internal/domain/service"
+	"moneyTransfer/pkg/logger"
 	"net/http"
 )
 
@@ -32,12 +33,14 @@ func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) 
 	userID := vars["userId"]
 
 	if userID == "" {
+		logger.Log.Error("UserId is required")
 		dtos.WriteErrorResponse(w, "User ID is required", "GetUserBalance: User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	balance, err := c.UserService.GetBalance(r.Context(), userID)
 	if err != nil {
+		logger.Log.Error("Error fetching user balance", "err", err)
 		dtos.WriteErrorResponse(w, "Error fetching user balance", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -46,4 +49,6 @@ func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(b)
+
+	logger.Log.Info("Balance fetched successfully", "balance", balance)
 }

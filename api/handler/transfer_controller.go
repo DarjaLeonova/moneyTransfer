@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"moneyTransfer/internal/domain/dtos"
 	"moneyTransfer/internal/domain/service"
+	"moneyTransfer/pkg/logger"
 	"net/http"
 )
 
@@ -30,12 +31,14 @@ func (c *TransferController) GetTransactionsByUserID(w http.ResponseWriter, r *h
 	userID := vars["userId"]
 
 	if userID == "" {
+		logger.Log.Error("UserId is required")
 		dtos.WriteErrorResponse(w, "User ID is required", "GetTransactionsByUserID: User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	transactions, err := c.TransferService.GetTransactionsByUserId(r.Context(), userID)
 	if err != nil {
+		logger.Log.Error("Error fetching transactions", "err", err)
 		dtos.WriteErrorResponse(w, "Error fetching transactions", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -44,6 +47,8 @@ func (c *TransferController) GetTransactionsByUserID(w http.ResponseWriter, r *h
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+
+	logger.Log.Info("Transactions fetched successfully", "response", response)
 }
 
 // @Summary Create new transaction
@@ -59,12 +64,14 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 	var transactionRequestDto dtos.TransactionRequestDto
 	err := json.NewDecoder(r.Body).Decode(&transactionRequestDto)
 	if err != nil {
+		logger.Log.Error("Error decoding request body", "err", err)
 		dtos.WriteErrorResponse(w, "Error parsing request body", err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	id, err := c.TransferService.CreateTransfer(r.Context(), transactionRequestDto.From.String(), transactionRequestDto.To.String(), transactionRequestDto.Amount)
 	if err != nil {
+		logger.Log.Error("Error creating transaction", "err", err)
 		dtos.WriteErrorResponse(w, "Failed to create transfer", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -77,4 +84,6 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+
+	logger.Log.Info("Created transaction", "id", id)
 }
