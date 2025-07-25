@@ -27,18 +27,14 @@ func NewTransferController(transferService service.TransferService) *TransferCon
 // @Failure 400 {object} dtos.ErrorResponse
 // @Router /transfers/{userId} [get]
 func (c *TransferController) GetTransactionsByUserID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userID := vars["userId"]
-
+	userID := mux.Vars(r)["userId"]
 	if userID == "" {
-		logger.Log.Error("UserId is required")
-		dtos.WriteErrorResponse(w, "User ID is required", "GetTransactionsByUserID: User ID is required", http.StatusBadRequest)
+		dtos.WriteErrorResponse(w, "User ID is required", "GetUserBalance: User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	transactions, err := c.TransferService.GetTransactionsByUserId(r.Context(), userID)
 	if err != nil {
-		logger.Log.Error("Error fetching transactions", "err", err)
 		dtos.WriteErrorResponse(w, "Error fetching transactions", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -64,14 +60,12 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 	var transactionRequestDto dtos.TransactionRequestDto
 	err := json.NewDecoder(r.Body).Decode(&transactionRequestDto)
 	if err != nil {
-		logger.Log.Error("Error decoding request body", "err", err)
 		dtos.WriteErrorResponse(w, "Error parsing request body", err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	id, err := c.TransferService.CreateTransfer(r.Context(), transactionRequestDto.From.String(), transactionRequestDto.To.String(), transactionRequestDto.Amount)
 	if err != nil {
-		logger.Log.Error("Error creating transaction", "err", err)
 		dtos.WriteErrorResponse(w, "Failed to create transfer", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -79,11 +73,11 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 	response := dtos.CreateTransactionResponseDto{
 		TransactionID: id,
 		Status:        "completed",
-		Message:       "Transfer created successfully",
+		Message:       "Transaction was successful",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	logger.Log.Info("Created transaction", "id", id)
+	logger.Log.Info("Transaction was successful", "id", id)
 }

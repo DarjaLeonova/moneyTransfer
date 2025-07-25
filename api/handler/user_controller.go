@@ -29,26 +29,22 @@ func NewUserController(service service.UserService) *UserController {
 // @Failure 500 {object} dtos.ErrorResponse
 // @Router /balance/{userId} [get]
 func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userID := vars["userId"]
-
+	userID := mux.Vars(r)["userId"]
 	if userID == "" {
-		logger.Log.Error("UserId is required")
 		dtos.WriteErrorResponse(w, "User ID is required", "GetUserBalance: User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	balance, err := c.UserService.GetBalance(r.Context(), userID)
 	if err != nil {
-		logger.Log.Error("Error fetching user balance", "err", err)
-		dtos.WriteErrorResponse(w, "Error fetching user balance", err.Error(), http.StatusInternalServerError)
+		dtos.WriteErrorResponse(w, "Error fetching balance", err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	b := dtos.BalanceResponseDto{Balance: balance}
+	response := dtos.BalanceResponseDto{Balance: balance}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(b)
+	json.NewEncoder(w).Encode(response)
 
 	logger.Log.Info("Balance fetched successfully", "balance", balance)
 }
