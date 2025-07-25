@@ -18,10 +18,6 @@ services:
     image: postgres:14
     container_name: money_transfer_db
     restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: money_transfer
     ports:
       - "5432:5432"
     networks:
