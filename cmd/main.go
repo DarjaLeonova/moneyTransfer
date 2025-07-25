@@ -10,6 +10,7 @@ import (
 	"moneyTransfer/internal/domain/service"
 	"moneyTransfer/internal/repository"
 	"moneyTransfer/internal/repository/postgres"
+	"moneyTransfer/pkg/logger"
 	"moneyTransfer/pkg/metrics"
 	"net/http"
 	"os"
@@ -24,6 +25,9 @@ import (
 // @BasePath /
 
 func main() {
+	logger.Init()
+	logger.Log.Info("Logger initialized")
+
 	port := os.Getenv("SERVER_PORT")
 
 	db, err := postgres.NewPostgresClient()
