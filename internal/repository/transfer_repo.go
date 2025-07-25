@@ -18,7 +18,7 @@ func NewTransferRepository(db *sql.DB) *TransferRepo {
 }
 
 func (r *TransferRepo) GetTransactionsByUserId(ctx context.Context, userId string) ([]model.Transaction, error) {
-	query := `SELECT * FROM transactions WHERE sender_id = $1 OR receiver_id = $1`
+	query := `SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = $1 OR receiver_id = $1`
 
 	rows, err := r.db.QueryContext(ctx, query, userId)
 	if err != nil {
