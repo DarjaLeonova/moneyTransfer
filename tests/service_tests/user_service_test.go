@@ -7,12 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/domain/service"
+	"moneyTransfer/tests"
 	"testing"
 )
 
-func TestGetBalance_Success(t *testing.T) {
+func TestUserService_GetBalance_Success(t *testing.T) {
 	ctx := context.Background()
-	repo := new(MockUserRepo)
+	repo := new(tests.MockUserRepo)
 	svc := service.NewUserService(repo)
 
 	repo.On("GetBalance", ctx, "user123").Return(100.0, nil)
@@ -24,9 +25,9 @@ func TestGetBalance_Success(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
-func TestGetBalance_Error(t *testing.T) {
+func TestUserService_GetBalance_Error(t *testing.T) {
 	ctx := context.Background()
-	repo := new(MockUserRepo)
+	repo := new(tests.MockUserRepo)
 	svc := service.NewUserService(repo)
 
 	repo.On("GetBalance", ctx, "user123").Return(0.0, errors.New("db error"))
@@ -38,9 +39,9 @@ func TestGetBalance_Error(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
-func TestGetById_Success(t *testing.T) {
+func TestUserService_GetById_Success(t *testing.T) {
 	ctx := context.Background()
-	repo := new(MockUserRepo)
+	repo := new(tests.MockUserRepo)
 	svc := service.NewUserService(repo)
 
 	expectedUser := model.User{
@@ -60,9 +61,9 @@ func TestGetById_Success(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
-func TestGetById_Error(t *testing.T) {
+func TestUserService_GetById_Error(t *testing.T) {
 	ctx := context.Background()
-	repo := new(MockUserRepo)
+	repo := new(tests.MockUserRepo)
 	svc := service.NewUserService(repo)
 
 	repo.On("GetById", ctx, "user123").Return(model.User{}, errors.New("db error"))

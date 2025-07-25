@@ -9,14 +9,15 @@ import (
 	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/domain/service"
 	"moneyTransfer/internal/queue"
+	"moneyTransfer/tests"
 	"testing"
 	"time"
 )
 
-func TestGetTransactionsByUserId_Success(t *testing.T) {
+func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
 	ctx := context.Background()
-	userRepo := new(MockUserRepo)
-	transferRepo := new(MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
+	transferRepo := new(tests.MockTransferRepo)
 	svc := service.NewTransferService(transferRepo, userRepo)
 
 	expectedTransactions := []model.Transaction{
@@ -39,10 +40,10 @@ func TestGetTransactionsByUserId_Success(t *testing.T) {
 	transferRepo.AssertExpectations(t)
 }
 
-func TestGetTransactionsByUserId_Error(t *testing.T) {
+func TestTransferService_GetTransactionsByUserId_Error(t *testing.T) {
 	ctx := context.Background()
-	userRepo := new(MockUserRepo)
-	transferRepo := new(MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
+	transferRepo := new(tests.MockTransferRepo)
 	svc := service.NewTransferService(transferRepo, userRepo)
 
 	transferRepo.On("GetTransactionsByUserId", ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9").
@@ -55,10 +56,10 @@ func TestGetTransactionsByUserId_Error(t *testing.T) {
 	transferRepo.AssertExpectations(t)
 }
 
-func TestCreateTransfer_AmountLessOrEqualZero(t *testing.T) {
+func TestTransferService_CreateTransfer_AmountLessOrEqualZero(t *testing.T) {
 	ctx := context.Background()
-	transferRepo := new(MockTransferRepo)
-	userRepo := new(MockUserRepo)
+	transferRepo := new(tests.MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
 	svc := service.NewTransferService(transferRepo, userRepo)
 
 	fromID := uuid.New().String()
@@ -69,10 +70,10 @@ func TestCreateTransfer_AmountLessOrEqualZero(t *testing.T) {
 	assert.Equal(t, uuid.Nil, id)
 }
 
-func TestCreateTransfer_RepoError(t *testing.T) {
+func TestTransferService_TransferService_CreateTransfer_RepoError(t *testing.T) {
 	ctx := context.Background()
-	transferRepo := new(MockTransferRepo)
-	userRepo := new(MockUserRepo)
+	transferRepo := new(tests.MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
 	svc := service.NewTransferService(transferRepo, userRepo)
 
 	fromID := uuid.New().String()
@@ -88,10 +89,10 @@ func TestCreateTransfer_RepoError(t *testing.T) {
 	transferRepo.AssertExpectations(t)
 }
 
-func TestCreateTransfer_Success(t *testing.T) {
+func TestTransferService_TransferService_CreateTransfer_Success(t *testing.T) {
 	ctx := context.Background()
-	transferRepo := new(MockTransferRepo)
-	userRepo := new(MockUserRepo)
+	transferRepo := new(tests.MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
 	svc := service.NewTransferService(transferRepo, userRepo)
 
 	fromID := uuid.New().String()
