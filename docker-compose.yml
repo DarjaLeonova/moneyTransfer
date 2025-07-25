@@ -1,6 +1,19 @@
 version: "3.9"
 
 services:
+  server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+    networks:
+      - transfernetwork
+    depends_on:
+      - db
+
   db:
     image: postgres:14
     container_name: money_transfer_db
@@ -11,9 +24,36 @@ services:
       POSTGRES_DB: money_transfer
     ports:
       - "5432:5432"
+    networks:
+      - transfernetwork
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  prometheus:
+    image: prom/prometheus
+    container_name: money_transfer_prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    networks:
+      - transfernetwork
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - transfernetwork
+
 volumes:
   postgres_data:
+
+networks:
+  transfernetwork:
