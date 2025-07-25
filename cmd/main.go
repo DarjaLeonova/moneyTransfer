@@ -8,6 +8,7 @@ import (
 	"moneyTransfer/api/handler"
 	"moneyTransfer/internal/domain/contracts"
 	"moneyTransfer/internal/domain/service"
+	"moneyTransfer/internal/queue"
 	"moneyTransfer/internal/repository"
 	"moneyTransfer/internal/repository/postgres"
 	"moneyTransfer/pkg/logger"
@@ -38,6 +39,7 @@ func main() {
 
 	var transferRepo contracts.TransferRepository = repository.NewTransferRepository(db)
 	var userRepo contracts.UserRepository = repository.NewUserRepository(db)
+	queue.StartWorker(userRepo, transferRepo)
 
 	transferService := service.NewTransferService(transferRepo, userRepo)
 	userService := service.NewUserService(userRepo)
