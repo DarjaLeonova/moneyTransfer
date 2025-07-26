@@ -11,10 +11,11 @@ import (
 
 type TransferController struct {
 	TransferService service.TransferService
+	log             logger.Logger
 }
 
-func NewTransferController(transferService service.TransferService) *TransferController {
-	return &TransferController{TransferService: transferService}
+func NewTransferController(transferService service.TransferService, logger logger.Logger) *TransferController {
+	return &TransferController{TransferService: transferService, log: logger}
 }
 
 // @Summary Get transactions by user ID
@@ -44,7 +45,7 @@ func (c *TransferController) GetTransactionsByUserID(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	logger.Log.Info("Transactions fetched successfully", "response", response)
+	c.log.Info("transactions fetched successfully", "response", response)
 }
 
 // @Summary Create new transaction
@@ -79,5 +80,5 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	logger.Log.Info("Transaction was successful", "id", id)
+	c.log.Info("transaction was successful", "id", id)
 }

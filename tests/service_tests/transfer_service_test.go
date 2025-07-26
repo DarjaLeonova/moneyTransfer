@@ -15,10 +15,7 @@ import (
 )
 
 func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
-	ctx := context.Background()
-	userRepo := new(tests.MockUserRepo)
-	transferRepo := new(tests.MockTransferRepo)
-	svc := service.NewTransferService(transferRepo, userRepo)
+	ctx, transferRepo, svc, logger := inittransferService()
 
 	expectedTransactions := []model.Transaction{
 		{
@@ -32,74 +29,74 @@ func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
 	}
 
 	transferRepo.On("GetTransactionsByUserId", ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9").Return(expectedTransactions, nil)
+	logger.On("Info", "transactions retrieved", "transactions", expectedTransactions).Return()
 
 	transactions, err := svc.GetTransactionsByUserId(ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9")
 	assert.NoError(t, err)
 	assert.Equal(t, expectedTransactions, transactions)
 
 	transferRepo.AssertExpectations(t)
+	logger.AssertExpectations(t)
 }
 
 func TestTransferService_GetTransactionsByUserId_Error(t *testing.T) {
-	ctx := context.Background()
-	userRepo := new(tests.MockUserRepo)
-	transferRepo := new(tests.MockTransferRepo)
-	svc := service.NewTransferService(transferRepo, userRepo)
+	ctx, transferRepo, svc, logger := inittransferService()
 
 	transferRepo.On("GetTransactionsByUserId", ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9").
 		Return(make([]model.Transaction, 0), errors.New("db error"))
+
+	logger.On("Error", "failed to get transactions by user id", "userId", "7141b92f-a8c8-471e-83e5-7fc72da61cb9", "error", mock.Anything).Return()
 
 	transactions, err := svc.GetTransactionsByUserId(ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9")
 	assert.Error(t, err)
 	assert.Len(t, transactions, 0)
 
 	transferRepo.AssertExpectations(t)
+	logger.AssertExpectations(t)
 }
 
 func TestTransferService_CreateTransfer_AmountLessOrEqualZero(t *testing.T) {
-	ctx := context.Background()
-	transferRepo := new(tests.MockTransferRepo)
-	userRepo := new(tests.MockUserRepo)
-	svc := service.NewTransferService(transferRepo, userRepo)
+	ctx, _, svc, logger := inittransferService()
 
 	fromID := uuid.New().String()
 	toID := uuid.New().String()
 
+	logger.On("Warn", "invalid transfer amount", "amount", 0.0, "from", fromID, "to", toID).Return()
+
 	id, err := svc.CreateTransfer(ctx, fromID, toID, 0)
 	assert.Error(t, err)
 	assert.Equal(t, uuid.Nil, id)
+	logger.AssertExpectations(t)
 }
 
 func TestTransferService_TransferService_CreateTransfer_RepoError(t *testing.T) {
-	ctx := context.Background()
-	transferRepo := new(tests.MockTransferRepo)
-	userRepo := new(tests.MockUserRepo)
-	svc := service.NewTransferService(transferRepo, userRepo)
+	ctx, transferRepo, svc, logger := inittransferService()
 
 	fromID := uuid.New().String()
 	toID := uuid.New().String()
 	amount := 100.0
 
 	transferRepo.On("CreateTransfer", ctx, mock.Anything).Return(errors.New("db error")).Once()
+	logger.On("Error", "failed to create transfer", "tx", mock.Anything, "error", mock.Anything).Return()
 
 	id, err := svc.CreateTransfer(ctx, fromID, toID, amount)
 	assert.Error(t, err)
 	assert.Equal(t, uuid.Nil, id)
 
 	transferRepo.AssertExpectations(t)
+	logger.AssertExpectations(t)
 }
 
 func TestTransferService_TransferService_CreateTransfer_Success(t *testing.T) {
-	ctx := context.Background()
-	transferRepo := new(tests.MockTransferRepo)
-	userRepo := new(tests.MockUserRepo)
-	svc := service.NewTransferService(transferRepo, userRepo)
+	ctx, transferRepo, svc, logger := inittransferService()
 
 	fromID := uuid.New().String()
 	toID := uuid.New().String()
 	amount := 100.0
 
 	transferRepo.On("CreateTransfer", ctx, mock.Anything).Return(nil).Once()
+	logger.On("Info", "transfer created", "tx", mock.Anything).Return()
+	logger.On("Info", "enqueuing transfer job", "job", mock.Anything).Return()
 
 	select {
 	case <-queue.JobsChan:
@@ -121,4 +118,14 @@ func TestTransferService_TransferService_CreateTransfer_Success(t *testing.T) {
 	}
 
 	transferRepo.AssertExpectations(t)
+	logger.AssertExpectations(t)
+}
+
+func inittransferService() (context.Context, *tests.MockTransferRepo, service.TransferService, *tests.MockLogger) {
+	ctx := context.Background()
+	transferRepo := new(tests.MockTransferRepo)
+	userRepo := new(tests.MockUserRepo)
+	logger := new(tests.MockLogger)
+	svc := service.NewTransferService(transferRepo, userRepo, logger)
+	return ctx, transferRepo, svc, logger
 }

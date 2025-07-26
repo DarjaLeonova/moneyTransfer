@@ -19,26 +19,27 @@ type TransferService interface {
 type transferService struct {
 	transferRepo contracts.TransferRepository
 	userRepo     contracts.UserRepository
+	log          logger.Logger
 }
 
-func NewTransferService(transferRepo contracts.TransferRepository, userRepo contracts.UserRepository) TransferService {
-	return &transferService{transferRepo: transferRepo, userRepo: userRepo}
+func NewTransferService(transferRepo contracts.TransferRepository, userRepo contracts.UserRepository, logger logger.Logger) TransferService {
+	return &transferService{transferRepo: transferRepo, userRepo: userRepo, log: logger}
 }
 
 func (t *transferService) GetTransactionsByUserId(ctx context.Context, userId string) ([]model.Transaction, error) {
 	transactions, err := t.transferRepo.GetTransactionsByUserId(ctx, userId)
 	if err != nil {
-		logger.Log.Error("failed to get transactions by user id", "userId", userId, "error", err)
+		t.log.Error("failed to get transactions by user id", "userId", userId, "error", err)
 		return nil, fmt.Errorf("failed to get transactions: %w", err)
 	}
 
-	logger.Log.Info("Transactions retrieved", "transactions", transactions)
-
+	t.log.Info("transactions retrieved", "transactions", transactions)
 	return transactions, nil
 }
 
 func (t *transferService) CreateTransfer(ctx context.Context, from, to string, amount float64) (uuid.UUID, error) {
 	if amount <= 0 {
+		t.log.Warn("invalid transfer amount", "amount", amount, "from", from, "to", to)
 		return uuid.Nil, fmt.Errorf("amount must be greater than zero")
 	}
 
@@ -53,8 +54,11 @@ func (t *transferService) CreateTransfer(ctx context.Context, from, to string, a
 
 	err := t.transferRepo.CreateTransfer(ctx, tx)
 	if err != nil {
+		t.log.Error("failed to create transfer", "tx", tx, "error", err)
 		return uuid.Nil, fmt.Errorf("failed to create transfer: %w", err)
 	}
+
+	t.log.Info("transfer created", "tx", tx)
 
 	job := queue.TransferJob{
 		SenderId:      tx.SenderId,
@@ -62,6 +66,8 @@ func (t *transferService) CreateTransfer(ctx context.Context, from, to string, a
 		Amount:        tx.Amount,
 		TransactionId: tx.Id,
 	}
+
+	t.log.Info("enqueuing transfer job", "job", job)
 
 	queue.Enqueue(job)
 	return tx.Id, nil

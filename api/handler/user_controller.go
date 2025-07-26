@@ -11,10 +11,11 @@ import (
 
 type UserController struct {
 	UserService service.UserService
+	log         logger.Logger
 }
 
-func NewUserController(service service.UserService) *UserController {
-	return &UserController{UserService: service}
+func NewUserController(service service.UserService, logger logger.Logger) *UserController {
+	return &UserController{UserService: service, log: logger}
 }
 
 // @Summary Get user balance
@@ -46,5 +47,5 @@ func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	logger.Log.Info("Balance fetched successfully", "balance", balance)
+	c.log.Info("balance fetched successfully", "balance", balance)
 }
