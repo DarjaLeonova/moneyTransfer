@@ -58,9 +58,9 @@ func (r *TransferRepo) CreateTransfer(ctx context.Context, tx model.Transaction)
 	return err
 }
 
-func (r *TransferRepo) UpdateTransactionStatus(ctx context.Context, txID, status string) error {
+func (r *TransferRepo) UpdateTransactionStatus(ctx context.Context, txId, status string) error {
 	query := `UPDATE transactions SET status = $1 WHERE id = $2`
 
-	_, err := r.db.ExecContext(ctx, query, status, txID)
+	_, err := r.db.ExecContext(ctx, query, status, txId)
 	return err
 }

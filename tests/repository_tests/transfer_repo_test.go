@@ -18,23 +18,27 @@ func TestTransferRepo_GetTransactionsByUserId_Success(t *testing.T) {
 	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
+	senderId := "c775d967-7b54-463f-9923-90f219d8224d"
+	txId := "a5bceab4-9dab-4d7a-8cd5-4ba832ebf899"
+	receiverId := "ed9c2b61-3908-413b-b355-a6c36d1a0cb3"
+
 	mock.ExpectQuery(`SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = \$1 OR receiver_id = \$1`).
-		WithArgs("user123").
+		WithArgs(senderId).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "sender_id", "receiver_id", "amount", "status", "created_at"}).
-			AddRow("a5bceab4-9dab-4d7a-8cd5-4ba832ebf899", "c775d967-7b54-463f-9923-90f219d8224d", "ed9c2b61-3908-413b-b355-a6c36d1a0cb3", 100.0, model.StatusSuccess, time.Time{}))
+			AddRow(txId, senderId, receiverId, 100.0, model.StatusSuccess, time.Time{}))
 
 	expectedTransactions := []model.Transaction{
 		{
-			Id:         uuid.MustParse("a5bceab4-9dab-4d7a-8cd5-4ba832ebf899"),
-			SenderId:   uuid.MustParse("c775d967-7b54-463f-9923-90f219d8224d"),
-			ReceiverId: uuid.MustParse("ed9c2b61-3908-413b-b355-a6c36d1a0cb3"),
+			Id:         uuid.MustParse(txId),
+			SenderId:   uuid.MustParse(senderId),
+			ReceiverId: uuid.MustParse(receiverId),
 			Amount:     100,
 			Status:     model.StatusSuccess,
 			CreatedAt:  time.Time{},
 		},
 	}
 
-	transactions, err := repo.GetTransactionsByUserId(context.Background(), "user123")
+	transactions, err := repo.GetTransactionsByUserId(context.Background(), senderId)
 	require.NoError(t, err)
 	require.Equal(t, expectedTransactions, transactions)
 
@@ -62,9 +66,9 @@ func TestTransferRepo_CreateTransfer_Success(t *testing.T) {
 	repo := repository.NewTransferRepository(db)
 
 	tx := model.Transaction{
-		Id:         uuid.New(),
-		SenderId:   uuid.New(),
-		ReceiverId: uuid.New(),
+		Id:         uuid.MustParse("7141b92f-a8c8-471e-83e5-7fc72da61cb9"),
+		SenderId:   uuid.MustParse("d489b057-aa2e-4d34-9020-d2b42294dc42"),
+		ReceiverId: uuid.MustParse("ed9c2b61-3908-413b-b355-a6c36d1a0cb3"),
 		Amount:     50.0,
 		Status:     model.StatusPending,
 		CreatedAt:  time.Now(),
@@ -85,9 +89,9 @@ func TestTransferRepo_CreateTransfer_Error(t *testing.T) {
 	repo := repository.NewTransferRepository(db)
 
 	tx := model.Transaction{
-		Id:         uuid.New(),
-		SenderId:   uuid.New(),
-		ReceiverId: uuid.New(),
+		Id:         uuid.MustParse("7141b92f-a8c8-471e-83e5-7fc72da61cb9"),
+		SenderId:   uuid.MustParse("d489b057-aa2e-4d34-9020-d2b42294dc42"),
+		ReceiverId: uuid.MustParse("ed9c2b61-3908-413b-b355-a6c36d1a0cb3"),
 		Amount:     50.0,
 		Status:     model.StatusPending,
 		CreatedAt:  time.Now(),
@@ -108,14 +112,14 @@ func TestTransferRepo_UpdateTransactionStatus_Success(t *testing.T) {
 	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
-	txID := uuid.New().String()
+	txId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
 	newStatus := model.StatusSuccess
 
 	mock.ExpectExec(`UPDATE transactions SET status = \$1 WHERE id = \$2`).
-		WithArgs(newStatus, txID).
+		WithArgs(newStatus, txId).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err := repo.UpdateTransactionStatus(context.Background(), txID, newStatus)
+	err := repo.UpdateTransactionStatus(context.Background(), txId, newStatus)
 	require.NoError(t, err)
 
 	require.NoError(t, mock.ExpectationsWereMet())
@@ -125,14 +129,14 @@ func TestTransferRepo_UpdateTransactionStatus_Error(t *testing.T) {
 	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
-	txID := uuid.New().String()
+	txId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
 	newStatus := model.StatusSuccess
 
 	mock.ExpectExec(`UPDATE transactions SET status = \$1 WHERE id = \$2`).
-		WithArgs(newStatus, txID).
+		WithArgs(newStatus, txId).
 		WillReturnError(errors.New("update failed"))
 
-	err := repo.UpdateTransactionStatus(context.Background(), txID, newStatus)
+	err := repo.UpdateTransactionStatus(context.Background(), txId, newStatus)
 	require.Error(t, err)
 	require.EqualError(t, err, "update failed")
 

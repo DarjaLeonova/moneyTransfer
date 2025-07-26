@@ -18,23 +18,23 @@ func NewTransferController(transferService service.TransferService, logger logge
 	return &TransferController{TransferService: transferService, log: logger}
 }
 
-// @Summary Get transactions by user ID
+// @Summary Get transactions by user Id
 // @Description Get all transactions for a specific user
 // @Tags transfers
 // @Accept json
 // @Produce json
-// @Param userId path string true "User ID"
+// @Param userId path string true "User Id"
 // @Success 200 {array} dtos.TransactionResponseDto
 // @Failure 400 {object} dtos.ErrorResponse
 // @Router /transfers/{userId} [get]
-func (c *TransferController) GetTransactionsByUserID(w http.ResponseWriter, r *http.Request) {
-	userID := mux.Vars(r)["userId"]
-	if userID == "" {
-		dtos.WriteErrorResponse(w, "User ID is required", "GetUserBalance: User ID is required", http.StatusBadRequest)
+func (c *TransferController) GetTransactionsByUserId(w http.ResponseWriter, r *http.Request) {
+	userId := mux.Vars(r)["userId"]
+	if userId == "" {
+		dtos.WriteErrorResponse(w, "User Id is required", "GetUserBalance: User Id is required", http.StatusBadRequest)
 		return
 	}
 
-	transactions, err := c.TransferService.GetTransactionsByUserId(r.Context(), userID)
+	transactions, err := c.TransferService.GetTransactionsByUserId(r.Context(), userId)
 	if err != nil {
 		dtos.WriteErrorResponse(w, "Error fetching transactions", err.Error(), http.StatusInternalServerError)
 		return
@@ -72,7 +72,7 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	response := dtos.CreateTransactionResponseDto{
-		TransactionID: id,
+		TransactionId: id,
 		Status:        "completed",
 		Message:       "Transaction was successful",
 	}

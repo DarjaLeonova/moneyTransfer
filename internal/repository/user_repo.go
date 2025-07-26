@@ -44,9 +44,9 @@ func (r *UserRepo) GetById(ctx context.Context, userId string) (model.User, erro
 	return user, nil
 }
 
-func (r *UserRepo) UpdateBalance(ctx context.Context, userID string, newBalance float64) error {
+func (r *UserRepo) UpdateBalance(ctx context.Context, userId string, newBalance float64) error {
 	query := `UPDATE users SET balance = $1 WHERE id = $2`
-	_, err := r.db.ExecContext(ctx, query, newBalance, userID)
+	_, err := r.db.ExecContext(ctx, query, newBalance, userId)
 
 	return err
 }

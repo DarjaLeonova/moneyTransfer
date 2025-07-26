@@ -23,20 +23,20 @@ func NewUserController(service service.UserService, logger logger.Logger) *UserC
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param userId path string true "User ID"
+// @Param userId path string true "User Id"
 // @Success 200 {object} dtos.BalanceResponseDto
 // @Failure 400 {object} dtos.ErrorResponse
 // @Failure 404 {object} dtos.ErrorResponse
 // @Failure 500 {object} dtos.ErrorResponse
 // @Router /balance/{userId} [get]
 func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) {
-	userID := mux.Vars(r)["userId"]
-	if userID == "" {
-		dtos.WriteErrorResponse(w, "User ID is required", "GetUserBalance: User ID is required", http.StatusBadRequest)
+	userId := mux.Vars(r)["userId"]
+	if userId == "" {
+		dtos.WriteErrorResponse(w, "User Id is required", "GetUserBalance: User Id is required", http.StatusBadRequest)
 		return
 	}
 
-	balance, err := c.UserService.GetBalance(r.Context(), userID)
+	balance, err := c.UserService.GetBalance(r.Context(), userId)
 	if err != nil {
 		dtos.WriteErrorResponse(w, "Error fetching balance", err.Error(), http.StatusInternalServerError)
 		return
@@ -47,5 +47,5 @@ func (c *UserController) GetUserBalance(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	c.log.Info("balance fetched successfully", "balance", balance)
+	c.log.Info("balance fetched successfully", "response", response)
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/domain/service"
 	"moneyTransfer/internal/queue"
@@ -17,10 +18,12 @@ import (
 func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
 	ctx, transferRepo, svc, logger := inittransferService()
 
+	userId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+
 	expectedTransactions := []model.Transaction{
 		{
 			Id:         uuid.MustParse("a5bceab4-9dab-4d7a-8cd5-4ba832ebf899"),
-			SenderId:   uuid.MustParse("7141b92f-a8c8-471e-83e5-7fc72da61cb9"),
+			SenderId:   uuid.MustParse(userId),
 			ReceiverId: uuid.MustParse("9d02adbc-27ca-4695-9d92-10cb35db67f4"),
 			Amount:     100,
 			Status:     model.StatusSuccess,
@@ -28,11 +31,11 @@ func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
 		},
 	}
 
-	transferRepo.On("GetTransactionsByUserId", ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9").Return(expectedTransactions, nil)
+	transferRepo.On("GetTransactionsByUserId", ctx, userId).Return(expectedTransactions, nil)
 	logger.On("Info", "transactions retrieved", "transactions", expectedTransactions).Return()
 
-	transactions, err := svc.GetTransactionsByUserId(ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9")
-	assert.NoError(t, err)
+	transactions, err := svc.GetTransactionsByUserId(ctx, userId)
+	require.NoError(t, err)
 	assert.Equal(t, expectedTransactions, transactions)
 
 	transferRepo.AssertExpectations(t)
@@ -42,12 +45,14 @@ func TestTransferService_GetTransactionsByUserId_Success(t *testing.T) {
 func TestTransferService_GetTransactionsByUserId_Error(t *testing.T) {
 	ctx, transferRepo, svc, logger := inittransferService()
 
-	transferRepo.On("GetTransactionsByUserId", ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9").
+	userId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+
+	transferRepo.On("GetTransactionsByUserId", ctx, userId).
 		Return(make([]model.Transaction, 0), errors.New("db error"))
 
-	logger.On("Error", "failed to get transactions by user id", "userId", "7141b92f-a8c8-471e-83e5-7fc72da61cb9", "error", mock.Anything).Return()
+	logger.On("Error", "failed to get transactions by user id", "userId", userId, "error", mock.Anything).Return()
 
-	transactions, err := svc.GetTransactionsByUserId(ctx, "7141b92f-a8c8-471e-83e5-7fc72da61cb9")
+	transactions, err := svc.GetTransactionsByUserId(ctx, userId)
 	assert.Error(t, err)
 	assert.Len(t, transactions, 0)
 
@@ -58,12 +63,12 @@ func TestTransferService_GetTransactionsByUserId_Error(t *testing.T) {
 func TestTransferService_CreateTransfer_AmountLessOrEqualZero(t *testing.T) {
 	ctx, _, svc, logger := inittransferService()
 
-	fromID := uuid.New().String()
-	toID := uuid.New().String()
+	fromId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+	toId := "ed9c2b61-3908-413b-b355-a6c36d1a0cb3"
 
-	logger.On("Warn", "invalid transfer amount", "amount", 0.0, "from", fromID, "to", toID).Return()
+	logger.On("Warn", "invalid transfer amount", "amount", 0.0, "from", fromId, "to", toId).Return()
 
-	id, err := svc.CreateTransfer(ctx, fromID, toID, 0)
+	id, err := svc.CreateTransfer(ctx, fromId, toId, 0)
 	assert.Error(t, err)
 	assert.Equal(t, uuid.Nil, id)
 	logger.AssertExpectations(t)
@@ -72,14 +77,14 @@ func TestTransferService_CreateTransfer_AmountLessOrEqualZero(t *testing.T) {
 func TestTransferService_TransferService_CreateTransfer_RepoError(t *testing.T) {
 	ctx, transferRepo, svc, logger := inittransferService()
 
-	fromID := uuid.New().String()
-	toID := uuid.New().String()
+	fromId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+	toId := "ed9c2b61-3908-413b-b355-a6c36d1a0cb3"
 	amount := 100.0
 
 	transferRepo.On("CreateTransfer", ctx, mock.Anything).Return(errors.New("db error")).Once()
 	logger.On("Error", "failed to create transfer", "tx", mock.Anything, "error", mock.Anything).Return()
 
-	id, err := svc.CreateTransfer(ctx, fromID, toID, amount)
+	id, err := svc.CreateTransfer(ctx, fromId, toId, amount)
 	assert.Error(t, err)
 	assert.Equal(t, uuid.Nil, id)
 
@@ -90,8 +95,8 @@ func TestTransferService_TransferService_CreateTransfer_RepoError(t *testing.T) 
 func TestTransferService_TransferService_CreateTransfer_Success(t *testing.T) {
 	ctx, transferRepo, svc, logger := inittransferService()
 
-	fromID := uuid.New().String()
-	toID := uuid.New().String()
+	fromId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+	toId := "ed9c2b61-3908-413b-b355-a6c36d1a0cb3"
 	amount := 100.0
 
 	transferRepo.On("CreateTransfer", ctx, mock.Anything).Return(nil).Once()
@@ -103,14 +108,14 @@ func TestTransferService_TransferService_CreateTransfer_Success(t *testing.T) {
 	default:
 	}
 
-	id, err := svc.CreateTransfer(ctx, fromID, toID, amount)
-	assert.NoError(t, err)
-	assert.NotEqual(t, uuid.Nil, id)
+	id, err := svc.CreateTransfer(ctx, fromId, toId, amount)
+	require.NoError(t, err)
+	require.NotEqual(t, uuid.Nil, id)
 
 	select {
 	case job := <-queue.JobsChan:
-		assert.Equal(t, uuid.MustParse(fromID), job.SenderId)
-		assert.Equal(t, uuid.MustParse(toID), job.ReceiverId)
+		assert.Equal(t, uuid.MustParse(fromId), job.SenderId)
+		assert.Equal(t, uuid.MustParse(toId), job.ReceiverId)
 		assert.Equal(t, amount, job.Amount)
 		assert.Equal(t, id, job.TransactionId)
 	case <-time.After(time.Second):

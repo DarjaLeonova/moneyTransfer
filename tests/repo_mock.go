@@ -20,8 +20,8 @@ func (m *MockUserRepo) GetById(ctx context.Context, userId string) (model.User, 
 	return args.Get(0).(model.User), args.Error(1)
 }
 
-func (m *MockUserRepo) UpdateBalance(ctx context.Context, userID string, newBalance float64) error {
-	args := m.Called(ctx, userID, newBalance)
+func (m *MockUserRepo) UpdateBalance(ctx context.Context, userId string, newBalance float64) error {
+	args := m.Called(ctx, userId, newBalance)
 	return args.Error(0)
 }
 
@@ -39,7 +39,7 @@ func (m *MockTransferRepo) CreateTransfer(ctx context.Context, tx model.Transact
 	return args.Error(0)
 }
 
-func (m *MockTransferRepo) UpdateTransactionStatus(ctx context.Context, txID, status string) error {
-	args := m.Called(ctx, txID, status)
+func (m *MockTransferRepo) UpdateTransactionStatus(ctx context.Context, txId, status string) error {
+	args := m.Called(ctx, txId, status)
 	return args.Error(0)
 }

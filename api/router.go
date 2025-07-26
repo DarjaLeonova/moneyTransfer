@@ -14,7 +14,7 @@ func InitRouter(
 ) *mux.Router {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/transfers/{userId}", transferController.GetTransactionsByUserID).Methods("GET")
+	router.HandleFunc("/transfers/{userId}", transferController.GetTransactionsByUserId).Methods("GET")
 	router.HandleFunc("/transfers", transferController.CreateTransaction).Methods("POST")
 	router.HandleFunc("/balance/{userId}", userController.GetUserBalance).Methods("GET")
 

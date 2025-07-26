@@ -41,15 +41,15 @@ func main() {
 	var transferRepo contracts.TransferRepository = repository.NewTransferRepository(db)
 	var userRepo contracts.UserRepository = repository.NewUserRepository(db)
 
-	transferService := service.NewTransferService(transferRepo, userRepo)
-	userService := service.NewUserService(userRepo)
+	transferService := service.NewTransferService(transferRepo, userRepo, logger.Log)
+	userService := service.NewUserService(userRepo, logger.Log)
 
-	transferController := handler.NewTransferController(transferService)
-	userController := handler.NewUserController(userService)
+	transferController := handler.NewTransferController(transferService, logger.Log)
+	userController := handler.NewUserController(userService, logger.Log)
 
 	router := api.InitRouter(transferController, userController)
 
-	queue.StartWorker(userRepo, transferRepo)
+	queue.StartWorker(userRepo, transferRepo, logger.Log)
 
 	/** Graceful shutdown
 	/- syscall.SIGTERM (kill -15, the default signal for docker stop)
