@@ -1,4 +1,4 @@
-package repository_tests
+package tests
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func setupMockDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
+func SetupMockDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	t.Cleanup(func() {
