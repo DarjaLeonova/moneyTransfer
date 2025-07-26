@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"moneyTransfer/internal/domain/dtos"
+	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/domain/service"
 	"moneyTransfer/pkg/logger"
 	"net/http"
@@ -73,12 +74,12 @@ func (c *TransferController) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	response := dtos.CreateTransactionResponseDto{
 		TransactionId: id,
-		Status:        "completed",
+		Status:        model.StatusSuccess,
 		Message:       "Transaction was successful",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	c.log.Info("transaction was successful", "id", id)
+	c.log.Info("transaction was successful", "response", response)
 }

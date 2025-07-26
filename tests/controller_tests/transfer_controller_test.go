@@ -1,6 +1,7 @@
 package controller_tests
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
@@ -92,6 +93,91 @@ func TestTransferController_GetTransactionsByUserId_MissingUserId(t *testing.T) 
 	err := json.NewDecoder(rr.Body).Decode(&errResp)
 	require.NoError(t, err)
 	assert.Equal(t, "User Id is required", errResp.Message)
+}
+
+func TestTransferController_CreateTransaction_Success(t *testing.T) {
+	svc, logger, controller := initTransferController()
+
+	txId := "861d7697-b717-43e8-95a2-1a74f9a36ab1"
+	fromId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+	toId := "befeef21-1475-4a13-a0de-3943d2eb0910"
+	amount := 100
+	expectedResponse := dtos.CreateTransactionResponseDto{
+		TransactionId: uuid.MustParse(txId),
+		Status:        model.StatusSuccess,
+		Message:       "Transaction was successful",
+	}
+
+	svc.On("CreateTransfer", mock.Anything, fromId, toId, 100.0).Return(expectedResponse.TransactionId, nil)
+	logger.On("Info", "transaction was successful", "response", expectedResponse).Return()
+
+	body := map[string]interface{}{
+		"from":   fromId,
+		"to":     toId,
+		"amount": amount,
+	}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/transfers/", bytes.NewReader(bodyBytes))
+	rr := httptest.NewRecorder()
+
+	controller.CreateTransaction(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	var resp dtos.CreateTransactionResponseDto
+	err := json.NewDecoder(rr.Body).Decode(&resp)
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedResponse, resp)
+	svc.AssertExpectations(t)
+	logger.AssertExpectations(t)
+}
+
+func TestTransferController_CreateTransaction_ErrorParseReqBody(t *testing.T) {
+	_, _, controller := initTransferController()
+
+	req := httptest.NewRequest(http.MethodPost, "/transfers/", nil)
+	rr := httptest.NewRecorder()
+
+	controller.CreateTransaction(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+
+	var errResp dtos.ErrorResponse
+	err := json.NewDecoder(rr.Body).Decode(&errResp)
+	require.NoError(t, err)
+	assert.Equal(t, "Error parsing request body", errResp.Message)
+}
+
+func TestTransferController_CreateTransaction_Error(t *testing.T) {
+	svc, _, controller := initTransferController()
+
+	expectedErr := errors.New("database connection failed")
+	fromId := "7141b92f-a8c8-471e-83e5-7fc72da61cb9"
+	toId := "befeef21-1475-4a13-a0de-3943d2eb0910"
+	amount := 100
+
+	svc.On("CreateTransfer", mock.Anything, fromId, toId, 100.0).Return(uuid.Nil, expectedErr)
+
+	body := map[string]interface{}{
+		"from":   fromId,
+		"to":     toId,
+		"amount": amount,
+	}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/transfers/", bytes.NewReader(bodyBytes))
+	rr := httptest.NewRecorder()
+
+	controller.CreateTransaction(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+
+	var errResp dtos.ErrorResponse
+	err := json.NewDecoder(rr.Body).Decode(&errResp)
+	require.NoError(t, err)
+	assert.Equal(t, "Failed to create transfer", errResp.Message)
+
+	svc.AssertExpectations(t)
 }
 
 func initTransferController() (*tests.MockTransferService, *tests.MockLogger, *handler.TransferController) {
