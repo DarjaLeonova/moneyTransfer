@@ -67,7 +67,7 @@ paths:
       - application/json
       description: Get current balance for a specific user
       parameters:
-      - description: User ID
+      - description: User Id
         in: path
         name: userId
         required: true
@@ -126,7 +126,7 @@ paths:
       - application/json
       description: Get all transactions for a specific user
       parameters:
-      - description: User ID
+      - description: User Id
         in: path
         name: userId
         required: true
@@ -144,7 +144,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/dtos.ErrorResponse'
-      summary: Get transactions by user ID
+      summary: Get transactions by user Id
       tags:
       - transfers
 swagger: "2.0"

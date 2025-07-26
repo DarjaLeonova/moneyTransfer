@@ -31,7 +31,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "User Id",
                         "name": "userId",
                         "in": "path",
                         "required": true
@@ -117,11 +117,11 @@ const docTemplate = `{
                 "tags": [
                     "transfers"
                 ],
-                "summary": "Get transactions by user ID",
+                "summary": "Get transactions by user Id",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "User Id",
                         "name": "userId",
                         "in": "path",
                         "required": true
