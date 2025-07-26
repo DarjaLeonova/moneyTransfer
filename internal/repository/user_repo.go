@@ -19,7 +19,6 @@ func NewUserRepository(db *sql.DB) *UserRepo {
 
 func (r *UserRepo) GetBalance(ctx context.Context, userId string) (float64, error) {
 	query := `SELECT balance FROM users WHERE id = $1`
-
 	row := r.db.QueryRowContext(ctx, query, userId)
 
 	var balance float64
@@ -34,7 +33,6 @@ func (r *UserRepo) GetBalance(ctx context.Context, userId string) (float64, erro
 
 func (r *UserRepo) GetById(ctx context.Context, userId string) (model.User, error) {
 	query := `SELECT id, first_name, last_name, email, balance FROM users WHERE id = $1`
-
 	row := r.db.QueryRowContext(ctx, query, userId)
 
 	var user model.User

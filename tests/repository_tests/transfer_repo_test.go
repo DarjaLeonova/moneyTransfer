@@ -9,12 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/repository"
+	"moneyTransfer/tests"
 	"testing"
 	"time"
 )
 
 func TestTransferRepo_GetTransactionsByUserId_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	mock.ExpectQuery(`SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = \$1 OR receiver_id = \$1`).
@@ -41,7 +42,7 @@ func TestTransferRepo_GetTransactionsByUserId_Success(t *testing.T) {
 }
 
 func TestTransferRepo_GetTransactionsByUserId_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	mock.ExpectQuery(`SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = \$1 OR receiver_id = \$1`).
@@ -57,7 +58,7 @@ func TestTransferRepo_GetTransactionsByUserId_Error(t *testing.T) {
 }
 
 func TestTransferRepo_CreateTransfer_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	tx := model.Transaction{
@@ -80,7 +81,7 @@ func TestTransferRepo_CreateTransfer_Success(t *testing.T) {
 }
 
 func TestTransferRepo_CreateTransfer_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	tx := model.Transaction{
@@ -104,7 +105,7 @@ func TestTransferRepo_CreateTransfer_Error(t *testing.T) {
 }
 
 func TestTransferRepo_UpdateTransactionStatus_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	txID := uuid.New().String()
@@ -121,7 +122,7 @@ func TestTransferRepo_UpdateTransactionStatus_Success(t *testing.T) {
 }
 
 func TestTransferRepo_UpdateTransactionStatus_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
 
 	txID := uuid.New().String()

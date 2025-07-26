@@ -8,11 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"moneyTransfer/internal/domain/model"
 	"moneyTransfer/internal/repository"
+	"moneyTransfer/tests"
 	"testing"
 )
 
 func TestUserRepo_GetBalance_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 
@@ -28,7 +29,7 @@ func TestUserRepo_GetBalance_Success(t *testing.T) {
 }
 
 func TestUserRepo_GetBalance_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 	mock.ExpectQuery(`SELECT balance FROM users WHERE id = \$1`).
@@ -46,7 +47,7 @@ func TestUserRepo_GetBalance_Error(t *testing.T) {
 }
 
 func TestUserRepo_GetById_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 
@@ -67,7 +68,7 @@ func TestUserRepo_GetById_Success(t *testing.T) {
 }
 
 func TestUserRepo_GetById_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 
@@ -84,7 +85,7 @@ func TestUserRepo_GetById_Error(t *testing.T) {
 }
 
 func TestUserRepo_UpdateBalance_Success(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 
@@ -99,7 +100,7 @@ func TestUserRepo_UpdateBalance_Success(t *testing.T) {
 }
 
 func TestUserRepo_UpdateBalance_Error(t *testing.T) {
-	db, mock := setupMockDB(t)
+	db, mock := tests.SetupMockDB(t)
 
 	repo := repository.NewUserRepository(db)
 
