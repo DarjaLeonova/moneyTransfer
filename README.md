@@ -56,7 +56,7 @@ A lightweight, containerized REST API for transferring money between users, feat
 ## 🐳 Docker Compose Setup
 
 ```
-docker-compose up --build
+docker-compose up -d --build
 ```
 #### This will start:
 
@@ -72,13 +72,12 @@ docker-compose up --build
 
 - It will ask you to change the password.
 - Then go to "Add Data Source" → Prometheus → Set URL to http://money_transfer_prometheus:9090
-- Small dashboard is located in 'Dashboards' section 
 
 ---
 
 ## 🛠️ Environment Configuration
 
-Create a **.env** file in root:
+In root you have the following **.env** file:
 
 ```
 POSTGRES_HOST=money_transfer_db
@@ -88,6 +87,7 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=admin
 SERVER_PORT=8080
 ```
+If you want to run locally change '**POSTGRES_HOST**' to '**localhost**' but ensure your postgres container is running and exposes port to your local machine.
 
 ---
 

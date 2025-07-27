@@ -25,6 +25,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: money_transfer
 
   prometheus:
     image: prom/prometheus

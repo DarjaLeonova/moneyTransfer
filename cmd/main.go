@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/joho/godotenv"
 	"log"
 	"moneyTransfer/api"
 	"moneyTransfer/api/handler"
@@ -30,6 +31,10 @@ func main() {
 	logger.Init()
 	logger.Log.Info("Logger initialized")
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	port := os.Getenv("SERVER_PORT")
 
 	db, err := postgres.NewPostgresClient()
@@ -63,7 +68,7 @@ func main() {
 		Handler: router,
 	}
 	go func() {
-		logger.Log.Info("HTTP server started on :8080")
+		logger.Log.Info("HTTP server started on port: " + port)
 		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Server failed: %v", err)
 		}
