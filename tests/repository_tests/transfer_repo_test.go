@@ -61,6 +61,44 @@ func TestTransferRepo_GetTransactionsByUserId_Error(t *testing.T) {
 	require.NoError(t, mock.ExpectationsWereMet())
 }
 
+func TestTransferRepo_GetTransactionsByUserId_ScanError(t *testing.T) {
+	db, mock := tests.SetupMockDB(t)
+	repo := repository.NewTransferRepository(db)
+
+	mock.ExpectQuery(`SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = \$1 OR receiver_id = \$1`).
+		WithArgs("some_user").
+		WillReturnRows(sqlmock.NewRows([]string{"id", "sender_id", "receiver_id", "amount", "status", "created_at"}).
+			AddRow("invalid-uuid", "invalid-uuid", "invalid-uuid", "bad_float", "status", time.Now()))
+
+	transactions, err := repo.GetTransactionsByUserId(context.Background(), "some_user")
+	require.Error(t, err)
+	require.Len(t, transactions, 0)
+
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestTransferRepo_GetTransactionsByUserId_IterationError(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	repo := repository.NewTransferRepository(db)
+
+	rows := sqlmock.NewRows([]string{"id", "sender_id", "receiver_id", "amount", "status", "created_at"}).
+		AddRow(uuid.New(), uuid.New(), uuid.New(), 50.0, model.StatusPending, time.Now())
+
+	mock.ExpectQuery(`SELECT id, sender_id, receiver_id, amount, status, created_at FROM transactions WHERE sender_id = \$1 OR receiver_id = \$1`).
+		WithArgs("user").
+		WillReturnRows(rows)
+
+	rows.RowError(0, errors.New("row iteration error"))
+
+	_, err = repo.GetTransactionsByUserId(context.Background(), "user")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "row iteration error")
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
 func TestTransferRepo_CreateTransfer_Success(t *testing.T) {
 	db, mock := tests.SetupMockDB(t)
 	repo := repository.NewTransferRepository(db)
