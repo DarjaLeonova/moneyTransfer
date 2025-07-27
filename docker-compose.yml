@@ -7,12 +7,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_HOST=money_transfer_db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=money_transfer
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - SERVER_PORT=8080
     networks:
       - transfernetwork
     depends_on:
       - db
+
 
   db:
     image: postgres:14
@@ -26,9 +32,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: money_transfer
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=money_transfer
+
 
   prometheus:
     image: prom/prometheus
